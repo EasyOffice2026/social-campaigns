@@ -1,0 +1,36 @@
+{
+  "name": "social-campaigns",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Automated multi-platform social media marketing campaigns (LinkedIn, X, Facebook, Instagram)",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "campaigns": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsx src/cli/index.ts",
+    "campaigns": "tsx src/cli/index.ts",
+    "worker": "tsx src/scheduler/worker.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^20.17.10",
+    "eslint": "^9.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}
