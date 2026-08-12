@@ -6,30 +6,46 @@ const bodies = { en: 'Approve keeps contracts and installments in one place.', a
 describe('render', () => {
   it('appends the link and hashtags for platforms that need them inline', () => {
     const result = render({
-      platform: 'linkedin',
+      platform: 'x',
       language: 'en',
       bodies,
       hashtags: ['Kuwait', 'ERP'],
       media: [],
-      link: 'https://example.com/approve',
+      link: 'https://ex.co/a',
     });
 
-    expect(result.text).toContain('https://example.com/approve');
+    expect(result.text).toContain('https://ex.co/a');
     expect(result.text).toContain('#Kuwait #ERP');
   });
 
-  it('omits the inline link where the platform renders its own preview', () => {
+  it.each(['facebook', 'linkedin'] as const)(
+    'omits the inline link on %s, which renders its own preview',
+    (platform) => {
+      const result = render({
+        platform,
+        language: 'en',
+        bodies,
+        hashtags: [],
+        media: [],
+        link: 'https://example.com/approve',
+      });
+
+      expect(result.text).not.toContain('https://example.com/approve');
+      expect(result.link).toBe('https://example.com/approve');
+    },
+  );
+
+  it('keeps hashtags when a link is present', () => {
     const result = render({
-      platform: 'facebook',
+      platform: 'linkedin',
       language: 'en',
       bodies,
-      hashtags: [],
+      hashtags: ['Kuwait'],
       media: [],
       link: 'https://example.com/approve',
     });
 
-    expect(result.text).not.toContain('https://example.com/approve');
-    expect(result.link).toBe('https://example.com/approve');
+    expect(result.text.endsWith('#Kuwait')).toBe(true);
   });
 
   it('trims hashtags to the per-platform maximum and reports it', () => {

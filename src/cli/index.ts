@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
+import { checkAccounts } from '../accounts.js';
 import { parseCampaign } from '../campaign.js';
-import { createPublisher, createStore, isPersistent, loadEnv } from '../config.js';
+import { buildRoutes, createPublisher, createStore, isPersistent, loadEnv } from '../config.js';
 import { planCampaign } from '../planner.js';
 import { Scheduler } from '../scheduler/scheduler.js';
 import type { PostStore } from '../store/store.js';
@@ -12,8 +13,9 @@ const USAGE = `campaigns <command>
   list <campaign.json>              show every post of a campaign with its status
   approve <campaign.json> [--all|--id <postId>...] --by <name>
   run [--dry-run]                   publish approved posts whose slot has arrived (one pass)
+  check                             verify the configured platform credentials still work
 
-Live publishing additionally requires PUBLISHING_ENABLED=true and an Ayrshare key.
+Live publishing additionally requires PUBLISHING_ENABLED=true and platform credentials.
 `;
 
 async function main(argv: string[]): Promise<number> {
@@ -25,7 +27,8 @@ async function main(argv: string[]): Promise<number> {
     !isPersistent(env) &&
     command !== undefined &&
     command !== 'help' &&
-    command !== 'preview'
+    command !== 'preview' &&
+    command !== 'check'
   ) {
     console.warn(
       '[warn] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set - using an in-memory store, nothing persists between commands',
@@ -35,6 +38,8 @@ async function main(argv: string[]): Promise<number> {
   switch (command) {
     case 'preview':
       return preview(rest);
+    case 'check':
+      return check(env);
     case 'plan':
       return plan(rest, store);
     case 'list':
@@ -79,6 +84,22 @@ async function preview(args: string[]): Promise<number> {
     `\n${posts.length} post(s) would be created, ${problems.length} problem(s) to fix`,
   );
   return problems.length > 0 ? 1 : 0;
+}
+
+async function check(env: ReturnType<typeof loadEnv>): Promise<number> {
+  const routed = Object.keys(buildRoutes(env));
+  console.log(
+    `publishing is ${env.PUBLISHING_ENABLED ? 'ENABLED' : 'disabled (everything is a dry run)'}`,
+  );
+  console.log(`platforms with a configured backend: ${routed.length > 0 ? routed.join(', ') : 'none'}`);
+
+  const results = await checkAccounts(env);
+  for (const result of results) {
+    const label = !result.configured ? 'not configured' : result.ok ? 'ok' : 'FAILING';
+    console.log(`${result.platform.padEnd(10)} ${label.padEnd(15)} ${result.detail}`);
+  }
+
+  return results.some((result) => result.configured && !result.ok) ? 1 : 0;
 }
 
 async function plan(args: string[], store: PostStore): Promise<number> {

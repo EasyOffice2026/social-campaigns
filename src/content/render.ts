@@ -6,7 +6,11 @@ export interface PlatformProfile {
   /** Recommended number of hashtags; more than this reads as spam. */
   maxHashtags: number;
   requiresMedia: boolean;
-  /** Platforms that show a link preview do not need the URL inline as well. */
+  /**
+   * Whether the URL has to sit in the body text. False where the platform
+   * renders its own preview card from the link (LinkedIn articles, Facebook
+   * link posts), so repeating the URL in the copy would be noise.
+   */
   appendsLinkToBody: boolean;
 }
 
@@ -15,7 +19,7 @@ export const PLATFORM_PROFILES: Record<Platform, PlatformProfile> = {
     maxLength: 3000,
     maxHashtags: 5,
     requiresMedia: false,
-    appendsLinkToBody: true,
+    appendsLinkToBody: false,
   },
   x: {
     maxLength: 280,
