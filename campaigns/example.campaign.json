@@ -1,0 +1,27 @@
+{
+  "id": "approve-launch-2026q3",
+  "name": "Approve Business Management System - Q3 awareness",
+  "timezone": "Asia/Kuwait",
+  "languages": ["en", "ar"],
+  "platforms": ["linkedin", "facebook"],
+  "hashtags": ["Kuwait", "ERP", "BusinessManagement", "SmallBusiness"],
+  "cadence": {
+    "startDate": "2026-09-01",
+    "everyDays": 2,
+    "timesOfDay": ["09:30", "19:00"]
+  },
+  "content": [
+    {
+      "key": "contracts-and-installments",
+      "en": "Chasing installment payments across spreadsheets? Approve generates the full schedule the moment a contract is signed, and shows you exactly what is due this week.",
+      "ar": "هل تتابع الأقساط عبر جداول متفرقة؟ نظام Approve ينشئ جدول الأقساط تلقائياً عند توقيع العقد، ويعرض لك المستحقات هذا الأسبوع بدقة.",
+      "link": "https://example.com/approve"
+    },
+    {
+      "key": "legal-cases",
+      "en": "When a contract goes to court, the paperwork multiplies. Approve keeps the case, the receipts and the recovered amounts in one place.",
+      "ar": "عند تحويل العقد إلى القضاء تتضاعف المستندات. نظام Approve يجمع القضية والسندات والمبالغ المحصلة في مكان واحد.",
+      "link": "https://example.com/approve/legal"
+    }
+  ]
+}
