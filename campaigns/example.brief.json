@@ -1,0 +1,29 @@
+{
+  "campaignId": "approve-launch-2026q3",
+  "name": "Approve Business Management System Q3 awareness",
+  "brand": "Approve",
+  "product": "Approve is a cloud business management system for Kuwaiti companies. It handles sales contracts, monthly installment schedules, legal case tracking for defaulted contracts, and HR records including residency and work permit expiry alerts. The whole interface works in English and Arabic with right-to-left layout.",
+  "audience": "Owners and finance managers of small and mid-sized Kuwaiti trading and services companies who still track contracts and installments in Excel",
+  "tone": "practical and confident, no marketing hype, short sentences",
+  "valueProps": [
+    "installment schedules are generated automatically from the contract",
+    "contracts in litigation are tracked with their court receipts and recovered amounts",
+    "residency and work permit expiry alerts before the deadline",
+    "full Arabic and English interface with RTL layout",
+    "role-based access for owner, admin and staff"
+  ],
+  "callToAction": "Book a 20 minute demo",
+  "link": "https://example.com/approve",
+  "hashtags": ["Kuwait", "ERP", "BusinessManagement"],
+  "languages": ["en", "ar"],
+  "platforms": ["linkedin", "facebook"],
+  "postCount": 6,
+  "timezone": "Asia/Kuwait",
+  "cadence": {
+    "startDate": "2026-08-18",
+    "everyDays": 2,
+    "timesOfDay": ["09:30", "19:00"]
+  },
+  "mustInclude": [],
+  "avoid": ["fake customer names", "invented prices", "invented statistics"]
+}

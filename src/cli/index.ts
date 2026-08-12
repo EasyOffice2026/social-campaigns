@@ -1,13 +1,25 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { checkAccounts } from '../accounts.js';
 import { parseCampaign } from '../campaign.js';
-import { buildRoutes, createPublisher, createStore, isPersistent, loadEnv } from '../config.js';
+import {
+  buildRoutes,
+  createGenerator,
+  createPublisher,
+  createStore,
+  isPersistent,
+  loadEnv,
+  type Env,
+} from '../config.js';
+import { parseBrief } from '../generate/brief.js';
+import { generateCampaign } from '../generate/generate.js';
 import { planCampaign } from '../planner.js';
 import { Scheduler } from '../scheduler/scheduler.js';
 import type { PostStore } from '../store/store.js';
 
 const USAGE = `campaigns <command>
 
+  generate <brief.json> --out <campaign.json>
+                                    draft campaign copy from a brief with an LLM
   preview <campaign.json>           render every post and print it, touching no store or network
   plan <campaign.json>              validate a campaign and write its posts as pending_approval
   list <campaign.json>              show every post of a campaign with its status
@@ -28,7 +40,8 @@ async function main(argv: string[]): Promise<number> {
     command !== undefined &&
     command !== 'help' &&
     command !== 'preview' &&
-    command !== 'check'
+    command !== 'check' &&
+    command !== 'generate'
   ) {
     console.warn(
       '[warn] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set - using an in-memory store, nothing persists between commands',
@@ -40,6 +53,8 @@ async function main(argv: string[]): Promise<number> {
       return preview(rest);
     case 'check':
       return check(env);
+    case 'generate':
+      return generate(rest, env);
     case 'plan':
       return plan(rest, store);
     case 'list':
@@ -86,7 +101,40 @@ async function preview(args: string[]): Promise<number> {
   return problems.length > 0 ? 1 : 0;
 }
 
-async function check(env: ReturnType<typeof loadEnv>): Promise<number> {
+async function generate(args: string[], env: Env): Promise<number> {
+  const briefPath = args[0];
+  if (briefPath === undefined) throw new Error('a brief file path is required');
+
+  const outIndex = args.indexOf('--out');
+  const outPath = outIndex === -1 ? undefined : args[outIndex + 1];
+  if (outPath === undefined) {
+    throw new Error('--out <campaign.json> is required so nothing is overwritten by accident');
+  }
+
+  const generator = createGenerator(env);
+  if (generator === undefined) {
+    console.error('no model configured - set ANTHROPIC_API_KEY or OPENAI_API_KEY');
+    return 1;
+  }
+
+  const brief = parseBrief(JSON.parse(await readFile(briefPath, 'utf8')));
+  console.log(`drafting ${brief.postCount} post(s) with ${generator.name}...`);
+
+  const { campaign, attempts } = await generateCampaign(brief, generator);
+  attempts.slice(0, -1).forEach((attempt, index) => {
+    console.warn(
+      `[warn] attempt ${index + 1} had ${attempt.problems.length} platform problem(s), asked the model to fix them`,
+    );
+  });
+
+  await writeFile(outPath, `${JSON.stringify(campaign, null, 2)}\n`, 'utf8');
+  console.log(
+    `wrote ${campaign.content.length} content piece(s) to ${outPath} - review it, then: campaigns preview ${outPath}`,
+  );
+  return 0;
+}
+
+async function check(env: Env): Promise<number> {
   const routed = Object.keys(buildRoutes(env));
   console.log(
     `publishing is ${env.PUBLISHING_ENABLED ? 'ENABLED' : 'disabled (everything is a dry run)'}`,

@@ -21,16 +21,44 @@ cp .env.example .env
 npm run campaigns -- preview campaigns/example.campaign.json
 ```
 
-With Supabase configured (`database/schema.sql` applied):
+No database needed for these either:
 
 ```bash
 npm run campaigns -- check              # are the platform credentials alive?
+npm run campaigns -- generate campaigns/example.brief.json --out campaigns/q3.campaign.json
+```
+
+With Supabase configured (`database/schema.sql` applied):
+
+```bash
 npm run campaigns -- plan campaigns/example.campaign.json
 npm run campaigns -- list campaigns/example.campaign.json
 npm run campaigns -- approve campaigns/example.campaign.json --all --by javed
 npm run campaigns -- run --dry-run      # rehearse
 npm run worker                          # long-running publisher
 ```
+
+## Writing the content
+
+You can write the campaign file by hand, or draft it from a brief:
+
+```bash
+npm run campaigns -- generate campaigns/example.brief.json --out campaigns/q3.campaign.json
+```
+
+A brief (`campaigns/example.brief.json`) states the product, audience, tone, the
+benefits the copy may draw on, the call to action, and what to avoid. The model
+writes one piece of content per post in every requested language, with a shorter
+`overrides.x` variant where the long version cannot fit.
+
+The draft is then validated exactly as `plan` would validate it, and any platform
+violation is fed back to the model to repair (up to 3 round trips) — so the file
+you get is already publishable rather than a draft that fails later. Generation
+never publishes: it writes a campaign file for you to read, and every post still
+goes through the approval gate.
+
+Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` to enable it. Arabic is written
+natively rather than translated from the English.
 
 ## How a campaign works
 
@@ -98,6 +126,7 @@ but passed to Facebook by URL.
 src/campaign.ts            campaign file schema (zod)
 src/planner.ts             campaign -> posts, slot assignment, stable ids
 src/content/render.ts      per-platform text/hashtag/media rules
+src/generate/            brief schema, prompt, validate-and-repair loop, LLM clients
 src/accounts.ts            credential checks behind `campaigns check`
 src/publishers/            linkedin, facebook, ayrshare, dry-run, routing
 src/scheduler/             tick loop, rate limits, worker entrypoint

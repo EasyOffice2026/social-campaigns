@@ -5,6 +5,11 @@ import { AyrsharePublisher } from './publishers/ayrshare.js';
 import { FacebookPublisher } from './publishers/facebook.js';
 import { LinkedInPublisher } from './publishers/linkedin.js';
 import { RoutingPublisher } from './publishers/routing.js';
+import {
+  AnthropicGenerator,
+  OpenAIGenerator,
+  type TextGenerator,
+} from './generate/llm.js';
 import { MemoryPostStore } from './store/memory-store.js';
 import { SupabasePostStore } from './store/supabase-store.js';
 import type { PostStore } from './store/store.js';
@@ -24,6 +29,12 @@ const envSchema = z.object({
   // Optional aggregator, used for any platform without direct credentials.
   AYRSHARE_API_KEY: z.string().min(1).optional(),
   AYRSHARE_PROFILE_KEY: z.string().min(1).optional(),
+
+  // Content generation. Either provider works; Anthropic wins if both are set.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z.string().min(1).default('claude-sonnet-4-5-20250929'),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_MODEL: z.string().min(1).default('gpt-4o'),
 
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
@@ -92,6 +103,19 @@ export function buildRoutes(env: Env): Partial<Record<Platform, Publisher>> {
   }
 
   return routes;
+}
+
+export function createGenerator(env: Env): TextGenerator | undefined {
+  if (env.ANTHROPIC_API_KEY !== undefined) {
+    return new AnthropicGenerator({
+      apiKey: env.ANTHROPIC_API_KEY,
+      model: env.ANTHROPIC_MODEL,
+    });
+  }
+  if (env.OPENAI_API_KEY !== undefined) {
+    return new OpenAIGenerator({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL });
+  }
+  return undefined;
 }
 
 export function createStore(env: Env): PostStore {

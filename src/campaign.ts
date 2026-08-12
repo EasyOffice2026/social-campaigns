@@ -7,6 +7,11 @@ const mediaSchema = z.object({
   altText: z.string().max(1000).optional(),
 });
 
+const bodiesSchema = z.object({
+  en: z.string().min(1).optional(),
+  ar: z.string().min(1).optional(),
+});
+
 const contentSchema = z.object({
   /** Stable key so re-planning a campaign does not duplicate posts. */
   key: z.string().min(1),
@@ -16,6 +21,11 @@ const contentSchema = z.object({
   media: z.array(mediaSchema).default([]),
   /** Overrides the campaign-level hashtag set for this piece of content. */
   hashtags: z.array(z.string()).optional(),
+  /**
+   * Per-platform copy, for where one body cannot serve every network - a post
+   * that reads well on LinkedIn does not fit X's 280 characters.
+   */
+  overrides: z.record(z.enum(PLATFORMS), bodiesSchema).optional(),
 });
 
 export const campaignSchema = z.object({

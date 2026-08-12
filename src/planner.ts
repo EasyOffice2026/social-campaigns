@@ -42,7 +42,7 @@ export function planCampaign(campaign: Campaign): Plan {
           rendered = render({
             platform,
             language,
-            bodies: bodiesOf(content),
+            bodies: bodiesOf(content, platform),
             hashtags: content.hashtags ?? campaign.hashtags,
             media: content.media,
             ...(content.link !== undefined ? { link: content.link } : {}),
@@ -88,8 +88,15 @@ export function postId(
   return `${campaignId}:${contentKey}:${language}:${platform}`;
 }
 
-function bodiesOf(content: CampaignContent): Partial<Record<Language, string>> {
-  return content.ar !== undefined ? { en: content.en, ar: content.ar } : { en: content.en };
+function bodiesOf(
+  content: CampaignContent,
+  platform: Platform,
+): Partial<Record<Language, string>> {
+  const override = content.overrides?.[platform] ?? {};
+  const bodies: Partial<Record<Language, string>> = { en: override.en ?? content.en };
+  const ar = override.ar ?? content.ar;
+  if (ar !== undefined) bodies.ar = ar;
+  return bodies;
 }
 
 function slotAt(campaign: Campaign, index: number): Date {
